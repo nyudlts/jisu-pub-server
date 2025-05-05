@@ -1,5 +1,5 @@
 # jisu-pub-server
-A Publication Manifest server based on the Readium go-toolkit.  Server the manifest needed by the jisu-reader.
+A Publication Manifest server based on the Readium go-toolkit.  Serves the manifest needed by the jisu-reader.
 
 ## Test the NYU-Go-Server Locally
 For development purposes it is possible to run this projects locally.
