@@ -1,17 +1,13 @@
-# NYU Go Server
-A Dockerized go server for serving eBook web pub manifests.  
-Based on the Readium go-toolkit.  
-Served from AWS EC2.  
+# jisu-pub-server
+A Publication Manifest server based on the Readium go-toolkit.  
 
 ## Test the NYU-Go-Server Locally
-Here are the steps to test the go-server to make sure it is working correctly before adding it to a Docker container.
+For development purposes it is possible to run this projects locally.
 
-Clone nyu-go-server from GitHub  
-Add books for testing to the nyu-go-server/test directory  
-'Make' the project and 'install' it for local execution.
+Clone nyu-go-server recursively from GitHub  
 
 ```
-git clone https://github.com/BluefireProductions/nyu-go-server.git --recursive
+git clone  https://github.com/BluefireProductions/nyu-press-go.git --recursive
 cd nyu-go-server
 go mod tidy
 make install
