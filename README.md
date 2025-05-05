@@ -1,18 +1,21 @@
 # jisu-pub-server
-A Publication Manifest server based on the Readium go-toolkit.  
+A Publication Manifest server based on the Readium go-toolkit.  Server the manifest needed by the jisu-reader.
 
 ## Test the NYU-Go-Server Locally
 For development purposes it is possible to run this projects locally.
 
-Clone nyu-go-server recursively from GitHub  
+Dependencies:
+go
+
+### clone, build and test the pub server 
 
 ```
-git clone  https://github.com/BluefireProductions/nyu-press-go.git --recursive
-cd nyu-go-server
+git clone https://github.com/nyudlts/jisu-pub-server --recursive
+cd jisu-pub-server
 go mod tidy
 make install
 
-//build the binary in the local 'go/bin' directory
+//build the server binary in your local 'go/bin' directory
 cd cmd/rwp
 go install 
 cd ../..
@@ -21,7 +24,7 @@ rwp serve test
 //test in a local web browser
 http://localhost:15080/list.json
 http://localhost:15080/OTc4MTQ3OTgxOTQ5Mi5lcHVi/manifest.json
-http://localhost:9000/OTc4MTQ3OTgxOTQ1NC5lcHVi/manifest.json
+http://localhost:15080/OTc4MTQ3OTgxOTQ1NC5lcHVi/manifest.json
 ```
 
 ## Adding ebooks to the container
