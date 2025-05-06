@@ -2,7 +2,7 @@
 A Publication Manifest server based on the Readium [go-toolkit](https://github.com/readium/go-toolkit).  Serves the manifest needed by the [jisu-reader](https://github.com/nyudlts/jisu-reader).
 
 ## Dev Setup
-For development purposes it is possible to run this projects locally.  Manifests for EPUBs in the 'test' directory will be available.
+For development purposes it is possible to run this project locally.  Manifests for EPUBs in the 'test' directory will be available.
 
 Dependencies:  
 go
