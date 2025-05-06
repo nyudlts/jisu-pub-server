@@ -15,7 +15,7 @@ cd jisu-pub-server
 go mod tidy
 make install
 
-//build the server binary in your local 'go/bin' directory
+//install the binary in your local 'go/bin' directory
 cd cmd/rwp
 go install 
 cd ../..  
@@ -30,7 +30,7 @@ http://localhost:15080/OTc4MTQ3OTgxOTQ1NC5lcHVi/manifest.json
 ```
 
 ## Production Setup
-For production, use the jisu-build project which includes this project as a submodule. 
+For production, use the [jisu-build](https://github.com/nyudlts/jisu-build) project which includes this project as a submodule. 
 
 ## Adding ebooks to the Docker container
 For production, the Dockerfile adds EPUBs served from GitHub pages via the 'docs' directory in [jisu-api](https://github.com/nyudlts/jisu-api) to the the Docker container as follows:  
