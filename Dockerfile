@@ -42,8 +42,8 @@ LABEL org.opencontainers.image.source="https://github.com/readium/go-toolkit"
 ADD https://pagure.io/mailcap/raw/master/f/mime.types /etc/
 
 # Add EPUBs to the container
-ADD --chown=nonroot:nonroot https://bluefireproductions.github.io/jisu-epubs/9781479819454.epub /srv/publications/
-ADD --chown=nonroot:nonroot https://bluefireproductions.github.io/jisu-epubs/9781479819492.epub /srv/publications/
+ADD --chown=nonroot:nonroot https://nyudlts.github.io/jisu-api/9781479819454.epub /srv/publications/
+ADD --chown=nonroot:nonroot https://nyudlts.github.io/jisu-api/9781479819492.epub /srv/publications/
 
 # Copy built Go binary
 COPY --from=builder "/app/rwp" /opt/
