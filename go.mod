@@ -1,8 +1,6 @@
 module github.com/readium/go-toolkit
 
-go 1.22
-
-toolchain go1.23.3
+go 1.24.0
 
 require (
 	github.com/CAFxX/httpcompression v0.0.9
@@ -23,7 +21,7 @@ require (
 	github.com/zeebo/xxh3 v1.0.2
 	golang.org/x/exp v0.0.0-20240529005216-23cca8864a10
 	golang.org/x/net v0.31.0
-	golang.org/x/text v0.20.0
+	golang.org/x/text v0.30.0
 )
 
 require (
