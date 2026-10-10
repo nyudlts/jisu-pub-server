@@ -1,7 +1,9 @@
 # jisu-pub-server
+
 A Publication Manifest server based on the Readium [go-toolkit](https://github.com/readium/go-toolkit).  Serves the manifest needed by the [jisu-reader](https://github.com/nyudlts/jisu-reader).
 
 ## Dev Setup
+
 For development purposes it is possible to run this project locally.  Manifests for EPUBs in the 'test' directory will be available.
 
 Dependencies:  
@@ -10,7 +12,7 @@ Dependencies:
 - go1.23.3
 - `.epub` files for the publication
 
-### clone, build and test the pub server 
+### clone, build and test the pub server locally
 
 ```
 git clone https://github.com/nyudlts/jisu-pub-server --recursive
@@ -32,10 +34,21 @@ http://localhost:15080/OTc4MTQ3OTgxOTQ5Mi5lcHVi/manifest.json
 http://localhost:15080/OTc4MTQ3OTgxOTQ1NC5lcHVi/manifest.json
 ```
 
+## Testing
+
+Run unit tests: 
+`go test ./...`
+`go test -v ./cmd/rwp/cmd/serve`
+
+Run integration tests:
+`go test -tags=integration ./integration/...`
+
 ## Production Setup
+
 For production, use the [jisu-build](https://github.com/nyudlts/jisu-build) project which includes this project as a submodule. 
 
 ## Adding ebooks to the Docker container
+
 For production, the Dockerfile here adds EPUBs served via GitHub pages to its Docker container. The 'docs' directory in [jisu-api](https://github.com/nyudlts/jisu-api) is setup as a Docker Pages directory so any new EPUBs should be placed there.  Update the Dockerfile here to refelct any additonal EPUBs based on the following syntax:
 ```
 ADD --chown=nonroot:nonroot https://nyudlts.github.io/jisu-api/9781479819454.epub /srv/publications/
@@ -43,4 +56,11 @@ ADD --chown=nonroot:nonroot https://nyudlts.github.io/jisu-api/9781479819492.epu
 ```
 
 The 'test' directory is used for local testing only.
+
+## For Jonathan Ahrens:
+
+- [ ] add books locally instead of github pages + docker ADD
+- [ ] try to obtain books from opensquare static filehosting
+- [ ] add books locally instead of AWS S3 bucket + file fetching
+- [ ] should the books be added via a submodule?
 
