@@ -2,11 +2,11 @@ package serve
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
 	"slices"
@@ -33,18 +33,28 @@ type demoListItem struct {
 }
 
 func (s *Server) demoList(w http.ResponseWriter, req *http.Request) {
-	fi, err := os.ReadDir(s.config.BaseDirectory)
+	backend, err := s.storageBackend()
+	if err != nil {
+		slog.Error("failed initializing storage backend", "error", err)
+		w.WriteHeader(500)
+		return
+	}
+	infos, err := backend.List(req.Context(), "")
 	if err != nil {
 		slog.Error("failed reading publications directory", "error", err)
 		w.WriteHeader(500)
 		return
 	}
-	files := make([]demoListItem, len(fi))
-	for i, f := range fi {
-		files[i] = demoListItem{
-			Filename: f.Name(),
-			Path:     base64.RawURLEncoding.EncodeToString([]byte(f.Name())),
+	files := make([]demoListItem, 0, len(infos))
+	for _, info := range infos {
+		// List is recursive; only the top-level entries are publications.
+		if strings.Contains(info.Key, "/") {
+			continue
 		}
+		files = append(files, demoListItem{
+			Filename: info.Key,
+			Path:     base64.RawURLEncoding.EncodeToString([]byte(info.Key)),
+		})
 	}
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", s.config.JSONIndent)
@@ -60,9 +70,13 @@ func (s *Server) getPublication(filename string) (*pub.Publication, error) {
 	cp := filepath.Clean(string(fpath))
 	dat, ok := s.lfu.Get(cp)
 	if !ok {
+		backend, err := s.storageBackend()
+		if err != nil {
+			return nil, err
+		}
 		pub, err := streamer.New(streamer.Config{
 			InferA11yMetadata: s.config.InferA11yMetadata,
-		}).Open(asset.File(filepath.Join(s.config.BaseDirectory, cp)), "")
+		}).Open(asset.Storage(context.Background(), backend, filepath.ToSlash(cp)), "")
 		if err != nil {
 			return nil, errors.Wrap(err, "failed opening "+cp)
 		}
