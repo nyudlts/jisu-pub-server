@@ -72,7 +72,7 @@ func (p WebPubParser) Parse(asset asset.PublicationAsset, fetcher fetcher.Fetche
 
 		panic("remote HttpFetcher not implemented!")
 
-		lFetcher = fetcher // TODO HttpFetcher using p.client
+		// lFetcher = fetcher // TODO HttpFetcher using p.client
 	}
 
 	// Checks the requirements from the LCPDF specification.
