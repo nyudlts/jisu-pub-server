@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"log/slog"
 
 	"github.com/readium/go-toolkit/cmd/rwp/cmd/serve"
+	"github.com/readium/go-toolkit/pkg/storage"
 	"github.com/readium/go-toolkit/pkg/streamer"
 	"github.com/spf13/cobra"
 )
@@ -21,8 +23,20 @@ var bindAddressFlag string
 
 var bindPortFlag uint16
 
+var storageModeFlag string
+
+var localRootFlag string
+
+var s3BucketFlag string
+
+var s3RegionFlag string
+
+var s3EndpointFlag string
+
+var baseURLFlag string
+
 var serveCmd = &cobra.Command{
-	Use:   "serve <directory>",
+	Use:   "serve [directory]",
 	Short: "Start a local HTTP server, serving a specified directory of publications",
 	Long: `Start a local HTTP server, serving a specified directory of publications.
 
@@ -40,9 +54,7 @@ encoded paths. This will be replaced by an OPDS 2 feed in a future release.
 Note: This server is not meant for production usage, and should not be exposed
 to the internet except for testing/debugging purposes.`,
 	Args: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return errors.New("expects a directory path to serve publications from")
-		} else if len(args) > 1 {
+		if len(args) > 1 {
 			return errors.New("accepts a directory path")
 		}
 		return nil
@@ -55,16 +67,10 @@ to the internet except for testing/debugging purposes.`,
 		// occurs.
 		cmd.SilenceUsage = true
 
-		path := filepath.Clean(args[0])
-		fi, err := os.Stat(path)
+		cfg := resolveStorageConfig(cmd, args)
+		backend, err := storage.NewBackend(cmd.Context(), cfg)
 		if err != nil {
-			if os.IsNotExist(err) {
-				return fmt.Errorf("given directory %s does not exist", path)
-			}
-			return fmt.Errorf("failed to stat %s: %w", path, err)
-		}
-		if !fi.IsDir() {
-			return fmt.Errorf("given path %s is not a directory", path)
+			return err
 		}
 
 		// Log level
@@ -76,9 +82,10 @@ to the internet except for testing/debugging purposes.`,
 
 		pubServer := serve.NewServer(serve.ServerConfig{
 			Debug:             debugFlag,
-			BaseDirectory:     path,
+			BaseDirectory:     cfg.LocalRoot,
 			JSONIndent:        indentFlag,
 			InferA11yMetadata: streamer.InferA11yMetadata(inferA11yFlag),
+			Backend:           backend,
 		})
 
 		bind := fmt.Sprintf("%s:%d", bindAddressFlag, bindPortFlag)
@@ -103,10 +110,46 @@ to the internet except for testing/debugging purposes.`,
 func init() {
 	rootCmd.AddCommand(serveCmd)
 
+	serveCmd.Flags().StringVar(&storageModeFlag, "storage", string(storage.DefaultMode), "Storage backend mode: local, s3, http (env: STORAGE)")
+	serveCmd.Flags().StringVar(&localRootFlag, "local-root", "", "Root directory for local storage mode (env: STORAGE_LOCAL_ROOT)")
+	serveCmd.Flags().StringVar(&s3BucketFlag, "s3-bucket", "", "Bucket name for s3 storage mode (env: STORAGE_S3_BUCKET)")
+	serveCmd.Flags().StringVar(&s3RegionFlag, "s3-region", "", "Region for s3 storage mode (env: STORAGE_S3_REGION)")
+	serveCmd.Flags().StringVar(&s3EndpointFlag, "s3-endpoint", "", "Custom endpoint for s3 storage mode (env: STORAGE_S3_ENDPOINT)")
+	serveCmd.Flags().StringVar(&baseURLFlag, "base-url", "", "Base URL for http storage mode (env: STORAGE_BASE_URL)")
 	serveCmd.Flags().StringVarP(&bindAddressFlag, "address", "a", "localhost", "Address to bind the HTTP server to")
 	serveCmd.Flags().Uint16VarP(&bindPortFlag, "port", "p", 15080, "Port to bind the HTTP server to")
 	serveCmd.Flags().StringVarP(&indentFlag, "indent", "i", "", "Indentation used to pretty-print JSON files")
 	serveCmd.Flags().Var(&inferA11yFlag, "infer-a11y", "Infer accessibility metadata: no, merged, split")
 	serveCmd.Flags().BoolVarP(&debugFlag, "debug", "d", false, "Enable debug mode")
 
+}
+
+func resolveStorageConfig(cmd *cobra.Command, args []string) storage.Config {
+	argRoot := ""
+	if len(args) > 0 {
+		argRoot = filepath.Clean(args[0])
+	}
+
+	return storage.Config{
+		Mode:      storage.Mode(resolveStorageString(cmd, "storage", storageModeFlag, "STORAGE", string(storage.DefaultMode))),
+		LocalRoot: resolveStorageString(cmd, "local-root", localRootFlag, "STORAGE_LOCAL_ROOT", argRoot),
+		S3: storage.S3Config{
+			Bucket:   resolveStorageString(cmd, "s3-bucket", s3BucketFlag, "STORAGE_S3_BUCKET", ""),
+			Region:   resolveStorageString(cmd, "s3-region", s3RegionFlag, "STORAGE_S3_REGION", ""),
+			Endpoint: resolveStorageString(cmd, "s3-endpoint", s3EndpointFlag, "STORAGE_S3_ENDPOINT", ""),
+		},
+		HTTP: storage.HTTPConfig{
+			BaseURL: resolveStorageString(cmd, "base-url", baseURLFlag, "STORAGE_BASE_URL", ""),
+		},
+	}
+}
+
+func resolveStorageString(cmd *cobra.Command, flagName, flagValue, envName, fallback string) string {
+	if cmd.Flags().Changed(flagName) {
+		return strings.TrimSpace(flagValue)
+	}
+	if v := strings.TrimSpace(os.Getenv(envName)); v != "" {
+		return v
+	}
+	return strings.TrimSpace(fallback)
 }
