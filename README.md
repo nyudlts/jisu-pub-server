@@ -24,14 +24,31 @@ make install
 cd cmd/rwp
 go install 
 cd ../..  
-  
-//start the server using the EPUBs in the 'test' directory
-rwp serve test
+
+//start the server in local mode using the current workspace code
+go run ./cmd/rwp serve --storage local --local-root test
+
+//if you prefer an installed binary, rebuild/install first so flags are current
+//(a stale /go/bin/rwp can miss newer flags like --storage)
+go install ./cmd/rwp
+rwp serve --storage local --local-root test
 
 //test in a local web browser
 http://localhost:15080/list.json
+vol5
 http://localhost:15080/OTc4MTQ3OTgxOTQ5Mi5lcHVi/manifest.json
+vol3
 http://localhost:15080/OTc4MTQ3OTgxOTQ1NC5lcHVi/manifest.json
+
+// for remote book lookup when connected to the dlib.nyu file server
+vol1
+http://localhost:15080/OTc4MTQ3OTgzNzU1Ny5lcHVi/manifest.json
+vol3
+http://localhost:15080/OTc4MTQ3OTgxOTQ1NC5lcHVi/manifest.json
+vol4
+http://localhost:15080/OTc4MTQ3OTg0NDU2Mi5lcHVi/manifest.json
+vol5
+http://localhost:15080/OTc4MTQ3OTgxOTQ5Mi5lcHVi/manifest.json
 ```
 
 ## Testing
