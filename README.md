@@ -5,7 +5,10 @@ A Publication Manifest server based on the Readium [go-toolkit](https://github.c
 For development purposes it is possible to run this project locally.  Manifests for EPUBs in the 'test' directory will be available.
 
 Dependencies:  
-go
+- git
+- docker (for devcontainer setup)
+- go1.23.3
+- `.epub` files for the publication
 
 ### clone, build and test the pub server 
 
