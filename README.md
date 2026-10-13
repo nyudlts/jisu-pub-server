@@ -9,7 +9,7 @@ For development purposes it is possible to run this project locally.  Manifests 
 Dependencies:  
 - git
 - docker (for devcontainer setup)
-- go1.23.3
+- go1.27.2
 - `.epub` files for the publication
 
 ### clone, build and test the pub server locally
