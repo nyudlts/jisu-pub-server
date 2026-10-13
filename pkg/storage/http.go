@@ -414,6 +414,71 @@ func (r *httpRangeReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
+// ReadAt implements io.ReaderAt so archive readers can randomly access bytes
+// without mutating the logical cursor used by Read/Seek.
+func (r *httpRangeReader) ReadAt(p []byte, off int64) (int, error) {
+	if off < 0 {
+		return 0, fmt.Errorf("storage: readat negative offset %d", off)
+	}
+	if off >= r.size {
+		return 0, io.EOF
+	}
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	remaining := r.size - off
+	want := len(p)
+	if int64(want) > remaining {
+		want = int(remaining)
+	}
+
+	end := off + int64(want) - 1
+	req, err := http.NewRequestWithContext(r.ctx, http.MethodGet, r.url, nil)
+	if err != nil {
+		return 0, err
+	}
+	for name, values := range r.header {
+		for _, v := range values {
+			req.Header.Add(name, v)
+		}
+	}
+	req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", off, end))
+
+	resp, err := r.client.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return 0, ErrNotFound
+	}
+	if resp.StatusCode != http.StatusPartialContent && resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("storage: ranged readat: unexpected status %s", resp.Status)
+	}
+	if resp.StatusCode == http.StatusOK && off > 0 {
+		if _, err := io.CopyN(io.Discard, resp.Body, off); err != nil {
+			return 0, fmt.Errorf("storage: ranged readat: discarding to offset %d: %w", off, err)
+		}
+	}
+
+	n, err := io.ReadFull(resp.Body, p[:want])
+	if err == io.ErrUnexpectedEOF {
+		err = io.EOF
+	}
+	if err != nil && err != io.EOF {
+		return n, err
+	}
+	if want < len(p) {
+		return n, io.EOF
+	}
+	if err == io.EOF {
+		return n, io.EOF
+	}
+	return n, nil
+}
+
 func (r *httpRangeReader) Seek(offset int64, whence int) (int64, error) {
 	var abs int64
 	switch whence {
