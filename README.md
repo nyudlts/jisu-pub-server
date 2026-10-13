@@ -36,16 +36,31 @@ http://localhost:15080/OTc4MTQ3OTgxOTQ1NC5lcHVi/manifest.json
 
 ## Testing
 
-Run unit tests: 
-`go test ./...`
-`go test -v ./cmd/rwp/cmd/serve`
+Preferred local verification commands:
 
-Run integration tests:
-`go test -tags=integration ./integration/...`
+- `make verify-local-ci` - Full local verification mirroring the manual CI workflow (`go build`, `go vet`, all tests, storage conformance, and integration in local mode).
+- `make verify-storage-conformance` - Storage backend conformance coverage for local, HTTP, and S3 mock backends.
+- `make verify-integration-local` - Integration tests pinned to local storage mode.
 
 ## Production Setup
 
 For production, use the [jisu-build](https://github.com/nyudlts/jisu-build) project which includes this project as a submodule. 
+
+## Storage Backends
+
+Storage backend selection is explicit and fail-fast. Configure one mode at startup with `--storage` or `STORAGE`.
+
+- Default mode: `http`
+- No backend fallback: if required config is missing, startup returns an error naming the missing variable.
+- No S3 credential flags: credentials are resolved only by the AWS SDK default credential chain.
+
+### Required config by mode
+
+- `http`: requires `STORAGE_BASE_URL` (or `--base-url`)
+- `local`: requires `STORAGE_LOCAL_ROOT` (or `--local-root`)
+- `s3`: requires `STORAGE_S3_BUCKET` (or `--s3-bucket`); optional `STORAGE_S3_REGION` / `STORAGE_S3_ENDPOINT`
+
+See [docs/storage-backends.md](docs/storage-backends.md) for full operator examples and behavior notes.
 
 ## Adding ebooks to the Docker container
 
@@ -57,7 +72,7 @@ ADD --chown=nonroot:nonroot https://nyudlts.github.io/jisu-api/9781479819492.epu
 
 The 'test' directory is used for local testing only.
 
-## For Jonathan Ahrens:
+## For me:
 
 - [ ] add books locally instead of github pages + docker ADD
 - [ ] try to obtain books from opensquare static filehosting
