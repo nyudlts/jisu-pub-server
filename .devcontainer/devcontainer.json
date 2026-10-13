@@ -1,0 +1,22 @@
+{
+  "name": "jisu-pub-server",
+  "image": "mcr.microsoft.com/devcontainers/go:1.27-bookworm",
+  "runArgs": [
+    "--platform=linux/arm64"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "go.useLanguageServer": true,
+        "go.gopath": "/go"
+      },
+      "extensions": [
+        "golang.Go"
+      ]
+    }
+  },
+  "forwardPorts": [
+    15080
+  ],
+  "remoteUser": "vscode"
+}
